@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import useProjects from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";
 import { Bot, CreditCard, LayoutDashboard, Plus, Presentation } from "lucide-react";
 import Image from "next/image";
@@ -31,16 +32,11 @@ const items = [
   },
 ];
 
-const projects = [
-  { name: "Project 1" },
-  { name: "Project 2" },
-  { name: "Project 3" },
-  { name: "Project 4" },
-];
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { open } = useSidebar();
+
+  const { projects, selectedProjectId, setSelectedProjectId } = useProjects();
 
   return (
     <Sidebar collapsible="icon" variant="floating">
@@ -78,13 +74,13 @@ export function AppSidebar() {
           <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {projects.map(project => (
-                <SidebarMenuItem key={project.name}>
+              {projects?.map(project => (
+                <SidebarMenuItem key={project.name} onClick={() => setSelectedProjectId(project.id)}>
                   <SidebarMenuButton asChild>
                     <div>
                       <div
                         className={cn('rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary', {
-                          "bg-primary text-white": true
+                          "bg-primary text-white": project.id === selectedProjectId
                         })}
                       >
                         {project.name[0]}
