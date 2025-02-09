@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Document } from '@langchain/core/documents';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 const model = genAI.getGenerativeModel({
-model: 'gemini-1.5-flash-8b',
+  model: 'gemini-1.5-flash-8b',
 });
 
 export const aiSummerizeCommit = async (diffs: string) => {
@@ -46,8 +47,32 @@ export const aiSummerizeCommit = async (diffs: string) => {
   return response.response.text();
 }
 
-console.log(await aiSummerizeCommit(`
-diff --git a/public/favicon.ico b/public/favicon.ico
-index e69de29..0f9442a 100644
-Binary files a/public/favicon.ico and b/public/favicon.ico differ
-`));
+export async function summarizeCode(doc: Document) {
+  console.log("Getting summary for", doc.metadata.source);
+  const code = doc.pageContent.slice(0, 10000) // Limiting the code document up to 50K character. I mean, who the hell dare to code 50K chars on a single file? 🤷‍♂️
+
+  try {
+    const response = await model.generateContent([
+      `You are an intelligent senior software engineer who specialises in onboarding junior software engineers onto projects`,
+      `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file
+Here is the code:
+---
+${code}
+---
+Give a summary no more than 100 words of the code above`
+    ]);
+    return response.response.text();
+  } catch (error) {
+    return '';
+  }
+}
+
+export async function generateEmbedding(summary: string) {
+  const model = genAI.getGenerativeModel({
+    model: 'text-embedding-004'
+  });
+  const result = await model.embedContent(summary);
+  const embedding = result.embedding;
+
+  return embedding.values;
+}
