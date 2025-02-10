@@ -3,7 +3,7 @@ import { Document } from '@langchain/core/documents';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash-8b',
+  model: 'gemini-2.0-flash-lite-preview-02-05',
 });
 
 export const aiSummerizeCommit = async (diffs: string) => {
@@ -48,7 +48,7 @@ export const aiSummerizeCommit = async (diffs: string) => {
 }
 
 export async function summarizeCode(doc: Document) {
-  console.log("Getting summary for", doc.metadata.source);
+  // console.log("Getting summary for", doc.metadata.source);
   const code = doc.pageContent.slice(0, 10000) // Limiting the code document up to 50K character. I mean, who the hell dare to code 50K chars on a single file? 🤷‍♂️
 
   try {

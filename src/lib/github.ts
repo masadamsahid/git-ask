@@ -41,20 +41,23 @@ export const pollCommits = async (projectId: string) => {
   const { project, githubUrl } = await fetchProjectGithubUrl(projectId);
   const commitHashes = await getCommitHashes(githubUrl);
   const unprocessedCommits = await filterUnprocessedCommits(projectId, commitHashes);
-  console.log(unprocessedCommits);
+  // console.log(unprocessedCommits);
   
   const summaryResponses = await Promise.allSettled(unprocessedCommits.map((commit) => {
     return summerizeCommit(githubUrl, commit.commitHash);
   }));
 
-  const summaries =  summaryResponses.map((res) => {
+  const summaries =  summaryResponses.map((res, i) => {
     if(res.status === 'fulfilled') return res.value;
+    console.log("Summary response not fulfilled", i);
+    console.error(res.reason);
     return "";
   });
 
   const commits = await db.commit.createMany({
     data: summaries.map((summary, i) => {
       console.log(`processing commit ${i}`);
+      console.log({projectId, commitHash: unprocessedCommits[i]!.commitHash, summary});
       
       return {
         projectId,
