@@ -13,6 +13,7 @@ import MDEditor from '@uiw/react-md-editor';
 import CodeReferences from "./code-references";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import useRefetch from "@/hooks/use-refetch";
 
 const AskQuestionCard = () => {
   const { selectedProject } = useProjects();
@@ -21,6 +22,7 @@ const AskQuestionCard = () => {
   const [loading, setLoading] = useState(false);
   const [fileReferences, setFileReferences] = useState<{ fileName: string; sourceCode: string; summary: string; }[]>([]);
   const [answer, setAnswer] = useState('');
+  const refetch = useRefetch();
 
   const saveAnswer = api.projects.saveAnswer.useMutation();
 
@@ -57,6 +59,7 @@ const AskQuestionCard = () => {
                   saveAnswer.mutate({ projectId: selectedProject!.id, answer, question, fileReferences }, {
                     onSuccess: () => {
                       toast.success('Answer saved!');
+                      refetch();
                     },
                     onError: () => {
                       toast.error('Failed to save answer!');
