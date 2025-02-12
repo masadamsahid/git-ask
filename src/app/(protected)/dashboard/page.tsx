@@ -7,15 +7,15 @@ import Link from "next/link";
 import CommitLog from "./commit-log";
 import AskQuestionCard from "./ask-question-card";
 import MeetingCard from "./meeting-card";
+import ArchiveButton from "./archive-button";
 
 const DashboardPage = () => {
-  const { user } = useUser();
+  // const { user } = useUser();
 
   const { selectedProject } = useProjects();
 
   return (
     <div>
-      {selectedProject?.id}
       <div className="flex items-center justify-between flex-wrap gap-y-4">
         <div className="w-fit rounded-md bg-primary px-4 py-3">
           <div className="flex items-center">
@@ -36,6 +36,7 @@ const DashboardPage = () => {
 
         <div className="flex items-center gap-4">
           Project Actions
+          <ArchiveButton/>
         </div>
       </div>
 
