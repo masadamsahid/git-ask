@@ -6,6 +6,7 @@ import { ExternalLink, Github } from "lucide-react";
 import Link from "next/link";
 import CommitLog from "./commit-log";
 import AskQuestionCard from "./ask-question-card";
+import MeetingCard from "./meeting-card";
 
 const DashboardPage = () => {
   const { user } = useUser();
@@ -41,7 +42,7 @@ const DashboardPage = () => {
       <div className="mt-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
           <AskQuestionCard/>
-          Meeting
+          <MeetingCard/>
         </div>
       </div>
 
