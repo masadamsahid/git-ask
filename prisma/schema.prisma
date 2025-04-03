@@ -38,6 +38,7 @@ model Project {
 
     name String
     githubUrl String @db.Text
+    branch String @default("main")
 
     deletedAt DateTime?
     

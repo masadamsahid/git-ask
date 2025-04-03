@@ -4,11 +4,12 @@ import { generateEmbedding, summarizeCode } from "./gemini";
 import { db } from "@/server/db";
 import { Octokit } from "octokit";
 
-const getFileCount = async (path: string, ocktokit: Octokit, githubOwner: string, githubRepo: string, acc: number = 0) => {
+const getFileCount = async (path: string, ocktokit: Octokit, githubOwner: string, githubRepo: string, acc: number = 0, githubBranch: string = "main") => {
   const { data } = await ocktokit.rest.repos.getContent({
     owner: githubOwner,
     repo: githubRepo,
     path,
+    ref: githubBranch,
   });
 
   if (!Array.isArray(data) && data.type === 'file') return acc + 1;
@@ -26,7 +27,7 @@ const getFileCount = async (path: string, ocktokit: Octokit, githubOwner: string
     }
 
     if (directories.length > 0) {
-      const directoryCounts = await Promise.all(directories.map(dirPath => getFileCount(dirPath, ocktokit, githubOwner, githubRepo, 0)));
+      const directoryCounts = await Promise.all(directories.map(dirPath => getFileCount(dirPath, ocktokit, githubOwner, githubRepo, 0, githubBranch)));
       fileCount += directoryCounts.reduce((acc, count) => acc + count, 0);
     }
     return acc + fileCount;
@@ -35,7 +36,7 @@ const getFileCount = async (path: string, ocktokit: Octokit, githubOwner: string
   return acc;
 }
 
-export const checkCredits = async (githubUrl: string, githubToken?: string) => {
+export const checkCredits = async (githubUrl: string, githubToken?: string, githubBranch: string = "main") => {
   // How many files in a repo
   const ocktokit = new Octokit({ auth: githubToken });
   const githubOwner = githubUrl.split('/')[3];
@@ -43,15 +44,15 @@ export const checkCredits = async (githubUrl: string, githubToken?: string) => {
 
   if (!githubOwner || !githubRepo) return 0;
 
-  const fileCount = await getFileCount('', ocktokit, githubOwner, githubRepo, 0);
+  const fileCount = await getFileCount('', ocktokit, githubOwner, githubRepo, 0, githubBranch);
 
   return fileCount;
 }
 
-export const loadGithubRepo = async (githubUrl: string, githubToken?: string) => {
+export const loadGithubRepo = async (githubUrl: string, githubToken?: string, githubBranch: string = "main") => {
   const loader = new GithubRepoLoader(githubUrl, {
     accessToken: githubToken || process.env.GITHUB_TOKEN,
-    branch: 'main', // TODO: Add a feature to choose desired branch
+    branch: githubBranch, // TODO: Add a feature to choose desired branch
     ignoreFiles: ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb'],
     recursive: true,
     unknown: 'warn',
@@ -61,8 +62,8 @@ export const loadGithubRepo = async (githubUrl: string, githubToken?: string) =>
   return docs;
 }
 
-export const indexGithubRepo = async (projectId: string, githubUrl: string, githubToken?: string) => {
-  const docs = await loadGithubRepo(githubUrl, githubToken);
+export const indexGithubRepo = async (projectId: string, githubUrl: string, githubToken?: string, githubBranch: string = "main") => {
+  const docs = await loadGithubRepo(githubUrl, githubToken, githubBranch);
   const allEmbeddings = await generateEmbeddings(docs);
 
   await Promise.allSettled(allEmbeddings.map(async (embedding, i) => {

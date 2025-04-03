@@ -12,6 +12,7 @@ type FormInput = {
   repoUrl: string;
   projectName: string;
   githubToken?: string;
+  githubBranch?: string;
 }
 
 const CreatePage = () => {
@@ -27,6 +28,7 @@ const CreatePage = () => {
         name: data.projectName,
         githubUrl: data.repoUrl,
         githubToken: data.githubToken,
+        githubBranch: data.githubBranch,
       }, {
         onSuccess: () => {
           toast.success('Project created successfully');
@@ -41,6 +43,7 @@ const CreatePage = () => {
       checkCredits.mutate({
         githubUrl: data.repoUrl,
         githubToken: data.githubToken,
+        githubBranch: data.githubBranch,
       });
     }
   }
@@ -64,6 +67,7 @@ const CreatePage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
             <Input required {...register('projectName', { required: true })} placeholder="Project Name" />
             <Input required {...register('repoUrl', { required: true })} placeholder="GitHub URL" type="url" />
+            <Input {...register('githubBranch', { required: true })} placeholder="Branch (default: main)" type="text" />
             <Input {...register('githubToken')} placeholder="GitHub Token (Optional)" />
             {!!checkCredits.data && (
               <>

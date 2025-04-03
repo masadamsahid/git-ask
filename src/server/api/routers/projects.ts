@@ -9,6 +9,7 @@ export const projectRouter = createTRPCRouter({
       name: z.string(),
       githubUrl: z.string(),
       githubToken: z.string().optional(),
+      githubBranch: z.string().optional(),
     })
   ).mutation(async ({ ctx, input }) => {
     const user = await ctx.db.user.findUnique({
@@ -18,7 +19,7 @@ export const projectRouter = createTRPCRouter({
     if (!user) throw new Error('User not found');
 
     const currentCredits = user.credits || 0;
-    const fileCount = await checkCredits(input.githubUrl, input.githubToken);
+    const fileCount = await checkCredits(input.githubUrl, input.githubToken, input.githubBranch);
 
     if (currentCredits < fileCount) throw new Error('Insufficient credits');
 
@@ -26,13 +27,14 @@ export const projectRouter = createTRPCRouter({
       data: {
         name: input.name,
         githubUrl: input.githubUrl,
+        branch: input.githubBranch,
         users: {
           create: { userId: ctx.user.userId! },
         },
       },
     });
 
-    await indexGithubRepo(project.id, input.githubUrl, input.githubToken);
+    await indexGithubRepo(project.id, input.githubUrl, input.githubToken, input.githubBranch);
     await pollCommits(project.id);
     await ctx.db.user.update({
       where: { id: ctx.user.userId! },
@@ -149,8 +151,8 @@ export const projectRouter = createTRPCRouter({
       },
     });
   }),
-  checkCredits: protectedProcedure.input(z.object({ githubUrl: z.string(), githubToken: z.string().optional() })).mutation(async ({ ctx, input }) => {
-    const fileCount = await checkCredits(input.githubUrl, input.githubToken);
+  checkCredits: protectedProcedure.input(z.object({ githubUrl: z.string(), githubToken: z.string().optional(), githubBranch: z.string().optional() })).mutation(async ({ ctx, input }) => {
+    const fileCount = await checkCredits(input.githubUrl, input.githubToken, input.githubBranch);
     const userCredits = await ctx.db.user.findUnique({
       where: {
         id: ctx.user.userId!
